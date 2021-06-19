@@ -89,6 +89,9 @@
     - Переработан ASM вывод, меньше весит, легче адаптируется под другие частоты / тайминги
     - Добавлена поддержка LGT8F328P с частотой 32/16/8 MHz
     - Переработан поллинг millis()/micros() - прямой вызов прерывания TIMER0_OVF, убран лишний код
+    
+    v3.5 
+    - Исправлена ошибка компиляции в некоторых угодных компилятору случаях
 */
 #ifndef microLED_h
 #define microLED_h
@@ -397,10 +400,8 @@ public:
         if (uptime && (isr == CLI_AVER || isr == CLI_HIGH)) systemUptimePoll();  // пнуть миллисы
     }
 
-    void sendRaw(byte data) {
-        uint8_t _loop_count = 0;			// Счетчик для циклов отправки бит
-        uint8_t _delay_loop_count = 0;	// Счетчик для циклов задержек asm
-        if (isr == CLI_LOW) {   // Низкий приоритет, текущий байт однозначно будет отправлен
+    void sendRaw(byte data) {		
+        if (isr == CLI_LOW) {   		  // Низкий приоритет, текущий байт однозначно будет отправлен
             sregSave = SREG;
             cli();
         }
@@ -408,7 +409,7 @@ public:
         case LED_WS2811:
             asm volatile
             (
-            "LDI %[CNT] ,8      \n\t"     // Загружаем в счетчик циклов 8
+            "LDI r19, 8      	\n\t"     // Загружаем в счетчик циклов 8
             "_LOOP_START_%=:    \n\t"     // Начало основного цикла
             "ST X, %[SET_H]     \n\t"     // Устанавливаем на выходе HIGH	
 #if(F_CPU == 32000000UL) 
@@ -418,27 +419,27 @@ public:
             "ST X, %[SET_L]     \n\t"     // Устанавливаем на выходе LOW
             "LSL  %[DATA]       \n\t"     // Двигаем данные влево на один бит	
             //-----------------------------------------------------------------------------------------		
-#if(F_CPU == 32000000UL)        	  // (LGT8) delay 44 такта, 14 циклов по 2CK + загрузка 1CK + NOP
-            "LDI %[DELAY], 14   \n\t"
-#elif(F_CPU == 16000000UL)            // delay 14 тактов, 4 цикла по 3CK + загрузка 1CK + NOP
-            "LDI %[DELAY], 4    \n\t"     // 1CK загрузить
-#elif (F_CPU == 8000000UL)            // delay 5 тактов, 1 цикл 3CK + загрузка 1CK + NOP
-            "LDI %[DELAY], 4    \n\t"     // 1CK загрузить
+#if(F_CPU == 32000000UL)        	      // (LGT8) delay 44 такта, 14 циклов по 2CK + загрузка 1CK + NOP
+            "LDI r20, 14   \n\t"
+#elif(F_CPU == 16000000UL)                // delay 14 тактов, 4 цикла по 3CK + загрузка 1CK + NOP
+            "LDI r20  , 4    \n\t"        // 1CK загрузить
+#elif (F_CPU == 8000000UL)                // delay 5 тактов, 1 цикл 3CK + загрузка 1CK + NOP
+            "LDI r20, 4    \n\t"     	  // 1CK загрузить
 #endif
             "_DELAY_LOOP_%=:    \n\t"     // Цикл задержки
-            "DEC %[DELAY]       \n\t"     // 1CK декремент
+            "DEC r20      \n\t"     	  // 1CK декремент
             "BRNE _DELAY_LOOP_%=\n\t"     // 2CK переход
             "NOP                \n\t"     // 1CK NOP	
             //-----------------------------------------------------------------------------------------		
             "ST X, %[SET_L]        \n\t"  // Устанавливаем на выходе LOW
-            "DEC %[CNT]            \n\t"  // Декремент счетчика циклов
+            "DEC r19               \n\t"  // Декремент счетчика циклов
             "BRNE  _LOOP_START_%=  \n\t"  // Переход на новый цикл, если счетчик не иссяк
-            :[CNT] "+r" (_loop_count),
-            [DELAY] "+r" (_delay_loop_count)
+            :
             :[DATA] "r" (data),
             [SET_H] "r" (_mask_h),
             [SET_L] "r" (_mask_l),
             "x" (_dat_port)
+			:"r19","r20"
             );
             break;
         case LED_WS2812:
@@ -448,7 +449,7 @@ public:
         case LED_WS6812:
             asm volatile
             (
-            "LDI %[CNT] ,8      \n\t"     // Загружаем в счетчик циклов 8
+            "LDI 19, 8      	\n\t"     // Загружаем в счетчик циклов 8
             "_LOOP_START_%=:    \n\t"     // Начало основного цикла
             "ST X, %[SET_H]     \n\t"     // Устанавливаем на выходе HIGH
 #if(F_CPU == 32000000UL) 
@@ -459,30 +460,30 @@ public:
             "LSL  %[DATA]       \n\t"     // Двигаем данные влево на один бит
             //-----------------------------------------------------------------------------------------
 #if(F_CPU > 8000000UL)
-#if(F_CPU == 32000000UL)        	  // (LGT8) delay 29 тактов, 9 цикла по 3CK + загрузка 1CK + NOP  
-            "LDI %[DELAY], 9    \n\t"
-#elif(F_CPU == 16000000UL)        	  // delay 8 тактов, 2 цикла по 3CK + загрузка 1CK + NOP
-            "LDI %[DELAY], 3    \n\t"
+#if(F_CPU == 32000000UL)        	  	  // (LGT8) delay 29 тактов, 9 цикла по 3CK + загрузка 1CK + NOP  
+            "LDI r20, 9    		\n\t"
+#elif(F_CPU == 16000000UL)        	  	  // delay 8 тактов, 2 цикла по 3CK + загрузка 1CK + NOP
+            "LDI r20, 3    		\n\t"
 #endif
             "_DELAY_LOOP_%=:    \n\t"     // Цикл задержки
-            "DEC %[DELAY]       \n\t"     // 1CK декремент
+            "DEC r20       		\n\t"     // 1CK декремент
             "BRNE _DELAY_LOOP_%=\n\t"     // 2CK переход
 #endif
             "NOP                   \n\t"  // 1CK NOP
             //-----------------------------------------------------------------------------------------
             "ST X, %[SET_L]        \n\t"  // Устанавливаем на выходе LOW
-            "DEC %[CNT]            \n\t"  // Декремент счетчика циклов
+            "DEC r19               \n\t"  // Декремент счетчика циклов
             "BRNE  _LOOP_START_%=  \n\t"  // Переход на новый цикл, если счетчик не иссяк
-            :[CNT] "+r" (_loop_count),
-            [DELAY] "+r" (_delay_loop_count)
+            :
             :[DATA] "r" (data),
             [SET_H] "r" (_mask_h),
             [SET_L] "r" (_mask_l),
             "x" (_dat_port)
+			:"r19","r20"
             );
             break;
         case LED_APA102:
-            for (_loop_count = 0; _loop_count < 8; _loop_count++)  {
+            for (uint8_t _loop_count = 0; _loop_count < 8; _loop_count++)  {
                 if (data & (1 << 7)) *_dat_port |= _dat_mask;
                 else *_dat_port &= ~_dat_mask;
                 *_clk_port |= _clk_mask;
@@ -529,10 +530,12 @@ void systemUptimePoll(void) {
         || defined(__AVR_ATmega32u4__)
     if (TIFR0 & (1 << TOV0)) {	// Если Timer0 досчитал до переполнения
         asm volatile				
-        (	
-        "CLI   \n\t"				// Запрещаем прерывания
-        "ICALL \n\t"				// Прыгаем в прерывание TIMER0 OVERFLOW, где обслуживается millis() / micros()
-        ::"z"(TIMER0_OVF_vect_num * 2) // Адрес прерывания
+        (
+		"IN __tmp_reg__,__SREG__  \n\t"	// Сохраняем настройки прерываний	
+        "CLI   					  \n\t" // Запрещаем прерывания
+        "ICALL 					  \n\t" // Прыгаем в прерывание TIMER0 OVERFLOW, где обслуживается millis() / micros()
+		"OUT __SREG__,__tmp_reg__ \n\t" // Возвращаем настройки прерываний
+        ::"z"(TIMER0_OVF_vect_num * 2)  // Адрес прерывания
         );
     }
 #endif

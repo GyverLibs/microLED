@@ -130,10 +130,7 @@ public:
 #endif
     }
 
-    void write(uint8_t data) {
-        uint8_t _loop_count = 0;			// Счетчик для циклов отправки бит
-        uint8_t _delay_loop_count = 0;	// Счетчик для циклов задержек asm	
-        
+    void write(uint8_t data) {      
 #ifndef TLED_STATIC_BRIGHT
         if (_bright != 255) data = fade8(data, _bright);
 #endif
@@ -145,7 +142,7 @@ public:
 #if (TLED_CHIP < 10)		// 1-пин ленты
         asm volatile
         (
-        "LDI %[CNT],8         \n\t"   // Счетчик 8ми циклов
+        "LDI r19,8         	  \n\t"   // Счетчик 8ми циклов
         "_LOOP_START_%=:      \n\t"   // Начало цикла
         "SBI %[PORT], %[PIN]  \n\t"   // HIGH на выход
         "SBRS %[DATA], 7      \n\t"   // Если бит '7' установлен, пропуск след. инструкции
@@ -157,45 +154,45 @@ public:
         
 #if (F_CPU == 16000000UL)
 #if (TLED_CHIP == 2)				  // 14CK delay (4 * 3CK) + LDI 1CK + NOP
-        "LDI %[DELAY], 4      \n\t"
+        "LDI r20, 4      	  \n\t"
         "NOP  				  \n\t"		
 #else								  // 8CK delay (2 * 3CK) + LDI 1CK + NOP
-        "LDI %[DELAY], 2      \n\t"
+        "LDI r20, 2      	  \n\t"
         "NOP  				  \n\t"		
 #endif	
 #elif (F_CPU == 8000000UL)			  // 5CK delay (1 * 3CK) + LDI 1CK + NOP
-        "LDI %[DELAY], 1      \n\t"
+        "LDI r20, 1           \n\t"
         "NOP  				  \n\t"	
 #elif (F_CPU == 9600000UL)
 #if (TLED_CHIP == 0)				  // 4CK delay (1 * 3CK) + LDI 1CK
-        "LDI %[DELAY], 1      \n\t"
+        "LDI r20, 1      	  \n\t"
 #elif (TLED_CHIP == 1)				  // 5CK delay (1 * 3CK) + LDI 1CK + NOP
-        "LDI %[DELAY], 1      \n\t"
+        "LDI r20, 1      	  \n\t"
         "NOP  				  \n\t"	
 #elif (TLED_CHIP == 2)				  // 8CK delay (2 * 3CK) + LDI 1CK + NOP
-        "LDI %[DELAY], 2      \n\t"
+        "LDI r20, 2     	  \n\t"
         "NOP  				  \n\t"	
 #endif  
 #endif
         "_DELAY_LOOP_%=:    \n\t"     // Цикл задержки
-        "DEC %[DELAY]       \n\t"     // 1CK декремент
+        "DEC r20       		\n\t"     // 1CK декремент
         "BRNE _DELAY_LOOP_%=\n\t"     // 2CK переход
 #endif
         //-----------------------------------------------------------------------------------------
         "CBI %[PORT], %[PIN]    \n\t"   // LOW на выход
         "LSL %[DATA]            \n\t"   // Сдвигаем данные влево
-        "DEC %[CNT]             \n\t"   // Декремент счетчика циклов
+        "DEC r19             	\n\t"   // Декремент счетчика циклов
         "BRNE _LOOP_START_%=    \n\t"   // Переход в начало цикла
-        :[CNT] "+r" (_loop_count),
-        [DELAY] "+r" (_delay_loop_count)
+        :
         :[DATA]"r"(data),
         [PORT]"I"(_SFR_IO_ADDR(TLED_PORT)),
         [PIN]"I"(pin)
+		:"r19","r20"
         );
 #elif (TLED_CHIP < 20)	// 2 пин ленты
         asm volatile
         (
-        "LDI %[CNT], 8          \n\t"
+        "LDI r20, 8          	\n\t"
         "LOOP_%=:               \n\t"
         "CBI %[CLK_PORT],%[CLK] \n\t"
         "CBI %[DAT_PORT],%[DAT] \n\t"
@@ -203,14 +200,15 @@ public:
         "SBI %[DAT_PORT],%[DAT] \n\t"
         "SBI %[CLK_PORT],%[CLK] \n\t"
         "LSL %[DATA]            \n\t"
-        "DEC %[CNT]             \n\t"
+        "DEC r20             	\n\t"
         "BRNE LOOP_%=           \n\t"
-        :[CNT] "+r" (_loop_count)
+        :
         :[CLK_PORT]"I"(_SFR_IO_ADDR(TLED_CLK_PORT)),
         [DAT_PORT]"I"(_SFR_IO_ADDR(TLED_DAT_PORT)),
         [CLK]"I"(pinC),
         [DAT]"I"(pinD),
         [DATA]"r"(data)
+		:"r20"
         );
 #else 						// SPI ленты
         SPI.transfer(data);
