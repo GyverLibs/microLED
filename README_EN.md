@@ -1,3 +1,5 @@
+This is an automatic translation, may be incorrect in some places. See sources and examples!
+
 #microLED
 microLED - ultra-lightweight address strip/matrix library
 - The main feature: color compression, the code takes up much less space in SRAM compared to analogues (FastLED, NeoPixel, etc.)
