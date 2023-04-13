@@ -80,7 +80,8 @@ fade	KEYWORD2
 setMaxCurrent	KEYWORD2
 
 # вывод
-begin 	KEYWORD2
+setCLI	KEYWORD2
+begin	KEYWORD2
 end	KEYWORD2
 send	KEYWORD2
 show	KEYWORD2

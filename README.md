@@ -90,49 +90,59 @@ microLED< NUMLEDS, -1, -1, LED_APA102_SPI, ORDER_BGR> strip;
 // шаблон: < количество, пин, чип, порядок, прерывания, миллис>
 // инициализация ЛЕНТА: нет аргументов
 microLED;
+
 // инициализация МАТРИЦА: ширина матрицы, высота матрицы, тип матрицы, угол подключения, направление (см. ПОДКЛЮЧЕНИЕ МАТРИЦЫ)
 microLED(uint8_t width, uint8_t height, M_type type, M_connection conn, M_dir dir);
+
 // лента и матрица
-void set(int n, mData color);  // ставим цвет светодиода mData (равносильно leds[n] = color)  
-mData get(int num);// получить цвет диода в mData (равносильно leds[n])
-void fill(mData color);  // заливка цветом mData
+void set(int n, mData color);   // ставим цвет светодиода mData (равносильно leds[n] = color)  
+mData get(int num);             // получить цвет диода в mData (равносильно leds[n])
+void fill(mData color);         // заливка цветом mData
 void fill(int from, int to, mData color);// заливка цветом mData
 void fillGradient(int from, int to, mData color1, mData color2);  // залить градиентом двух цветов
-void fade(int num, byte val);  // уменьшить яркость
+void fade(int num, byte val);   // уменьшить яркость
+
 // матрица
-uint16_t getPixNumber(int x, int y);  // получить номер пикселя в ленте по координатам
-void set(int x, int y, mData color);  // ставим цвет пикселя x y в mData
-mData get(int x, int y);// получить цвет пикселя в mData
-void fade(int x, int y, byte val);// уменьшить яркость
-void drawBitmap8(int X, int Y, const uint8_t *frame, int width, int height);  // вывод битмапа (битмап 1мерный PROGMEM)
+uint16_t getPixNumber(int x, int y);    // получить номер пикселя в ленте по координатам
+void set(int x, int y, mData color);    // ставим цвет пикселя x y в mData
+mData get(int x, int y);                // получить цвет пикселя в mData
+void fade(int x, int y, byte val);      // уменьшить яркость
+void drawBitmap8(int X, int Y, const uint8_t *frame, int width, int height);    // вывод битмапа (битмап 1мерный PROGMEM)
 void drawBitmap16(int X, int Y, const uint16_t *frame, int width, int height);  // вывод битмапа (битмап 1мерный PROGMEM)
 void drawBitmap32(int X, int Y, const uint32_t *frame, int width, int height);  // вывод битмапа (битмап 1мерный PROGMEM)
+
 // общее
-void setMaxCurrent(int ma);// установить максимальный ток (автокоррекция яркости). 0 - выключено
+void setMaxCurrent(int ma);             // установить максимальный ток (автокоррекция яркости). 0 - выключено
 void setBrightness(uint8_t newBright);  // яркость 0-255
-void clear();  // очистка
+void clear();                           // очистка
+void setCLI(type);                      // режим запрета прерываний CLI_OFF, CLI_LOW, CLI_AVER, CLI_HIGH
+
 // вывод буфера
-void show();  // вывести весь буфер
+void show();            // вывести весь буфер
+
 // вывод потока
-void begin();  // начать вывод потоком
+void begin();           // начать вывод потоком
 void send(mData data);  // отправить один светодиод
-void end();// закончить вывод потоком
+void end();             // закончить вывод потоком
+
 // цвет
-uint32_t getHEX(mData data);            // перепаковать в 24 бит HEX
-mData getFade(mData data, uint8_t val);        // уменьшить яркость на val
+uint32_t getHEX(mData data);                        // перепаковать в 24 бит HEX
+mData getFade(mData data, uint8_t val);             // уменьшить яркость на val
 mData getBlend(int x, int amount, mData c0, mData c1);  // получить промежуточный цвет
-mData mRGB(uint8_t r, uint8_t g, uint8_t b);    // RGB 255, 255, 255
-mData mWheel(int color, uint8_t bright=255);    // цвета 0-1530 + яркость 
-mData mWheel8(uint8_t color, uint8_t bright=255);  // цвета 0-255 + яркость
-mData mHEX(uint32_t color);              // mHEX цвет
-mData mHSV(uint8_t h, uint8_t s, uint8_t v);    // HSV 255, 255, 255
-mData mHSVfast(uint8_t h, uint8_t s, uint8_t v);  // HSV 255, 255, 255
-mData mKelvin(int kelvin);              // температура
+mData mRGB(uint8_t r, uint8_t g, uint8_t b);        // RGB 255, 255, 255
+mData mWheel(int color, uint8_t bright=255);        // цвета 0-1530 + яркость 
+mData mWheel8(uint8_t color, uint8_t bright=255);   // цвета 0-255 + яркость
+mData mHEX(uint32_t color);                         // mHEX цвет
+mData mHSV(uint8_t h, uint8_t s, uint8_t v);        // HSV 255, 255, 255
+mData mHSVfast(uint8_t h, uint8_t s, uint8_t v);    // HSV 255, 255, 255
+mData mKelvin(int kelvin);                          // температура
+
 // макросы уменьшения яркости
 fade8(x, b)
 fade8R(x, b)
 fade8G(x, b)
 fade8B(x, b) 
+
 // упаковка-распаковка
 getR(x)
 getG(x)
@@ -384,7 +394,10 @@ void loop() {
     - Переработан поллинг millis()/micros() - прямой вызов прерывания TIMER0_OVF, убран лишний код
     
 - v3.5
-    - Исправлена ошибка компиляции в некоторых угодных компилятору случаях
+    - Исправлена ошибка компиляции в некоторых случаях
+    
+- v3.6
+    - Добавлена настройка режима запрета прерываний на лету
 
 <a id="feedback"></a>
 ## Баги и обратная связь

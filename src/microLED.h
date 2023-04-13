@@ -28,79 +28,18 @@
     AlexGyver & Egor 'Nich1con' Zaharov, alex@alexgyver.ru
     https://alexgyver.ru/
     MIT License
-    
-    Версии:
-    v1.1
-    - Поправлена инициализация
-    - Добавлен оранжевый цвет
-    
-    v2.0
-    - Переписан и сильно ускорен алгоритм вывода
-    - Добавлено ограничение тока
-    
-    v2.1
-    - Поправлена ошибка с матрицей
-    
-    v2.2
-    - Цвет PINK заменён на MAGENTA
-    
-    v2.3
-    - Добавлена дефайн настройка MICROLED_ALLOW_INTERRUPTS
-    - Исправлены мелкие ошибки, улучшена стабильность
-    
-    v2.4
-    - Добавлен ORDER_BGR
-    
-    v2.5
-    - Яркость по CRT гамме
-    
-    v3.0
-    - Добавлены функции и цвета: 
-    - Цветовая температура .setKelvin() и дата Kelvin
-    - getBlend(позиция, всего, цвет1, цвет2) и getBlend2(позиция, всего, цвет1, цвет2)
-    - .fill(от, до)
-    - .fillGradient(от, до, цвет1, цвет2)
-    - Добавлен шум Перлина (вытащил из FastLED)
-    - Добавлены градиенты
-    - Полностью переделан и оптимизирован вывод
-    - Возможность работать вообще без буфера
-    - Настройка ограничения тока для всех типов лент
-    - Настраиваемый запрет прерываний
-    - Сохранение работы миллиса на время отправки
-    - Поддержка лент 2811, 2812, 2813, 2815, 2818
-    - Поддержка 4х цветных лент: WS6812
-    - Инициализация переделана под шаблон, смотри примеры!
-    - Много изменений в названиях, всё переделано и упрощено, читай документацию!
-    
-    v3.1
-    - Поправлены ошибки компиляции для нестандартных ядер Ардуино и Аттини
-    - Добавлен класс tinyLED.h для вывода потоком с ATtiny и вообще любых AVR (см. пример)
-    - Вырезаны инструменты FastLED (рандом, шум), будем работать напрямую с фастлед
-    - Добавлена поддержка совместной работы с библиотекой FastLED и конвертация из её типов!
-    - Добавлена поддержка ленты APA102 (а также других SPI), программная и аппаратная SPI
-    
-    v3.2
-    - Чуть оптимизации и исправлений
-    
-    v3.3
-    - Исправлен критический баг с влиянием на другие пины
-    
-    v3.4
-    - Переработан ASM вывод, меньше весит, легче адаптируется под другие частоты / тайминги
-    - Добавлена поддержка LGT8F328P с частотой 32/16/8 MHz
-    - Переработан поллинг millis()/micros() - прямой вызов прерывания TIMER0_OVF, убран лишний код
-    
-    v3.5 
-    - Исправлена ошибка компиляции в некоторых угодных компилятору случаях
+
 */
-#ifndef microLED_h
-#define microLED_h
+#ifndef _microLED_h
+#define _microLED_h
 
 #ifndef COLOR_DEBTH
 #define COLOR_DEBTH 3    // по умолчанию 24 бита
 #endif
 
+#include <Arduino.h>
 #include "color_utility.h"
+#include "types.h"
 
 #ifdef MLED_USE_SPI
 #include <SPI.h>
@@ -110,65 +49,17 @@
 #define MLED_SPI_CLOCK 8000000
 #endif
 
-// чип
-enum M_chip {
-    LED_WS2811,    // GBR
-    LED_WS2812,    // GRB
-    LED_WS2813,    // GRB
-    LED_WS2815,    // GRB
-    LED_WS2818,    // RGB
-    LED_WS6812,    // BGR
-    LED_APA102,    // BGR
-    LED_APA102_SPI,    // BGR
-};
-
 #define CHIP4COLOR (chip == LED_WS6812)
-
-enum M_order {
-    // порядок цвета: r-00, g-01, b-10
-    ORDER_RGB = 0b000110,
-    ORDER_RBG = 0b001001,
-    ORDER_BRG = 0b100001,
-    ORDER_BGR = 0b100100,
-    ORDER_GRB = 0b010010,
-    ORDER_GBR = 0b011000,
-};
-
-enum M_ISR {
-    CLI_OFF,
-    CLI_LOW,
-    CLI_AVER,
-    CLI_HIGH,
-};
-
-const byte SAVE_MILLIS = 1;
+const uint8_t SAVE_MILLIS = 1;
 const int8_t MLED_NO_CLOCK = -1;
-
-// ========== ПОДКЛЮЧЕНИЕ МАТРИЦЫ ==========
-enum M_type {
-    ZIGZAG,
-    PARALLEL,
-};
-enum M_connection {
-    LEFT_BOTTOM,
-    LEFT_TOP,
-    RIGHT_TOP,
-    RIGHT_BOTTOM,
-};
-enum M_dir {
-    DIR_RIGHT,
-    DIR_UP,
-    DIR_LEFT,
-    DIR_DOWN,
-};
-
 void systemUptimePoll(void);    // дёрнуть миллисы
+
 
 // ============================================== КЛАСС ==============================================
 // <amount, pin, clock pin, chip, order, cli, mls> ()
 // <amount, pin, clock pin, chip, order, cli, mls> (width, height, type, conn, dir)
 // количество, пин, чип, порядок, прерывания, миллис
-template<int amount, int8_t pin, int8_t pinCLK, M_chip chip, M_order order, M_ISR isr = CLI_OFF, uint8_t uptime = 0>
+template<int amount, int8_t pin, int8_t pinCLK, M_chip chip, M_order order, M_ISR def_isr = CLI_OFF, uint8_t uptime = 0>
 class microLED {
 public:
     /*
@@ -180,33 +71,34 @@ public:
         
         // лента и матрица
         void set(int n, mData color);                    // ставим цвет светодиода mData (равносильно leds[n] = color)                    
-        mData get(int num);                                // получить цвет диода в mData (равносильно leds[n])
-        void fill(mData color);                            // заливка цветом mData
+        mData get(int num);                              // получить цвет диода в mData (равносильно leds[n])
+        void fill(mData color);                          // заливка цветом mData
         void fill(int from, int to, mData color);        // заливка цветом mData
         void fillGradient(int from, int to, mData color1, mData color2);    // залить градиентом двух цветов
         void fade(int num, byte val);                    // уменьшить яркость
         
         // матрица
-        uint16_t getPixNumber(int x, int y);            // получить номер пикселя в ленте по координатам
-        void set(int x, int y, mData color);            // ставим цвет пикселя x y в mData
-        mData get(int x, int y);                        // получить цвет пикселя в mData
-        void fade(int x, int y, byte val);                // уменьшить яркость
+        uint16_t getPixNumber(int x, int y);             // получить номер пикселя в ленте по координатам
+        void set(int x, int y, mData color);             // ставим цвет пикселя x y в mData
+        mData get(int x, int y);                         // получить цвет пикселя в mData
+        void fade(int x, int y, byte val);               // уменьшить яркость
         void drawBitmap8(int X, int Y, const uint8_t *frame, int width, int height);    // вывод битмапа (битмап 1мерный PROGMEM)
         void drawBitmap16(int X, int Y, const uint16_t *frame, int width, int height);    // вывод битмапа (битмап 1мерный PROGMEM)
         void drawBitmap32(int X, int Y, const uint32_t *frame, int width, int height);    // вывод битмапа (битмап 1мерный PROGMEM)
         
         // общее
-        void setMaxCurrent(int ma);                        // установить максимальный ток (автокоррекция яркости). 0 - выключено
-        void setBrightness(uint8_t newBright);            // яркость 0-255
+        void setMaxCurrent(int ma);                      // установить максимальный ток (автокоррекция яркости). 0 - выключено
+        void setBrightness(uint8_t newBright);           // яркость 0-255
         void clear();                                    // очистка
+        void setCLI(type);                               // режим запрета прерываний CLI_OFF, CLI_LOW, CLI_AVER, CLI_HIGH
         
         // вывод буфера
-        void show();                                    // вывести весь буфер
+        void show();                                     // вывести весь буфер
         
         // вывод потока
         void begin();                                    // начать вывод потоком
-        void send(mData data);                            // отправить один светодиод
-        void end();                                        // закончить вывод потоком
+        void send(mData data);                           // отправить один светодиод
+        void end();                                      // закончить вывод потоком
     */
     
     int oneLedMax = 46;
@@ -250,6 +142,10 @@ public:
         init();
         if (_matrixConfig == 4 || _matrixConfig == 13 || _matrixConfig == 14 || _matrixConfig == 7) _matrixW = height;
         else _matrixW = width;
+    }
+    
+    void setCLI(M_ISR nisr) {
+        isr = nisr;
     }
 
     void setBrightness(uint8_t newBright) {
@@ -520,24 +416,8 @@ private:
     uint8_t _clk_mask;
     uint8_t _mask_h, _mask_l;
     uint8_t sregSave = SREG;
+    M_ISR isr = def_isr;
 
 };  // класс
 
-// Ручное обслуживание функций времени на период запрета прерываний
-void systemUptimePoll(void) {
-#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168p__) \
-        || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) \
-        || defined(__AVR_ATmega32u4__)
-    if (TIFR0 & (1 << TOV0)) {    // Если Timer0 досчитал до переполнения
-        asm volatile                
-        (
-        "IN __tmp_reg__,__SREG__  \n\t"    // Сохраняем настройки прерываний    
-        "CLI                         \n\t" // Запрещаем прерывания
-        "ICALL                       \n\t" // Прыгаем в прерывание TIMER0 OVERFLOW, где обслуживается millis() / micros()
-        "OUT __SREG__,__tmp_reg__ \n\t" // Возвращаем настройки прерываний
-        ::"z"(TIMER0_OVF_vect_num * 2)  // Адрес прерывания
-        );
-    }
-#endif
-}
 #endif
