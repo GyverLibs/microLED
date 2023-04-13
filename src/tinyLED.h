@@ -22,7 +22,7 @@
 #define CRT_OFF
 #endif
 
-#include <color_utility.h>		// работа с цветом
+#include <color_utility.h>        // работа с цветом
 
 // дефолтные настройки (можно оверрайд дефайном из скетча)
 #ifndef TLED_ORDER
@@ -82,25 +82,25 @@
 #define CLI_HIGH 3
 
 // ======== ЛИБА SPI ========
-#if (TLED_CHIP == LED_APA102_SPI)	// SPI лента
+#if (TLED_CHIP == LED_APA102_SPI)    // SPI лента
 #include <SPI.h>
 #endif
 
-#if (TLED_CHIP < 10)		// 1 пин ленты
+#if (TLED_CHIP < 10)        // 1 пин ленты
 template <byte pin>
-#elif (TLED_CHIP < 20)	// 2 пин ленты
+#elif (TLED_CHIP < 20)    // 2 пин ленты
 template <byte pinD, byte pinC>
-#endif						// SPI ленты
+#endif                        // SPI ленты
 class tinyLED {
 public:
     tinyLED() {
         // OUTPUT
-#if (TLED_CHIP < 10)		// 1 пин ленты
+#if (TLED_CHIP < 10)        // 1 пин ленты
         TLED_DDR |= 1 << pin;
-#elif (TLED_CHIP < 20)	// 2 пин ленты
+#elif (TLED_CHIP < 20)    // 2 пин ленты
         TLED_DAT_DDR |= 1 << pinD;
         TLED_CLK_DDR |= 1 << pinC;
-#else						// SPI ленты
+#else                        // SPI ленты
         SPI.begin();
 #endif
     }
@@ -114,7 +114,7 @@ public:
         SPI.beginTransaction(SPISettings(TLED_SPI_CLOCK, MSBFIRST, SPI_MODE0));
 #endif
 #if (TLED_CHIP >= 10)
-        for (byte i = 0; i < 4; i++) write(0);	
+        for (byte i = 0; i < 4; i++) write(0);    
 #endif
     }
     
@@ -125,7 +125,7 @@ public:
 #if (TLED_CHIP >= 10)
         for (byte i = 0; i < 4; i++) write(0);
 #endif
-#if (TLED_CHIP >= 20)		
+#if (TLED_CHIP >= 20)        
         SPI.endTransaction();
 #endif
     }
@@ -139,60 +139,60 @@ public:
         cli();
 #endif
         // ====================================================================
-#if (TLED_CHIP < 10)		// 1-пин ленты
+#if (TLED_CHIP < 10)        // 1-пин ленты
         asm volatile
         (
-        "LDI r19,8         	  \n\t"   // Счетчик 8ми циклов
+        "LDI r19,8               \n\t"   // Счетчик 8ми циклов
         "_LOOP_START_%=:      \n\t"   // Начало цикла
         "SBI %[PORT], %[PIN]  \n\t"   // HIGH на выход
         "SBRS %[DATA], 7      \n\t"   // Если бит '7' установлен, пропуск след. инструкции
         "CBI %[PORT], %[PIN]  \n\t"   // LOW на выход
         //-----------------------------------------------------------------------------------------
 #if (F_CPU == 8000000UL) && (TLED_CHIP != 2)
-        "NOP  				  \n\t"	  // Единственный NOP для 8мгц
+        "NOP                    \n\t"      // Единственный NOP для 8мгц
 #else
         
 #if (F_CPU == 16000000UL)
-#if (TLED_CHIP == 2)				  // 14CK delay (4 * 3CK) + LDI 1CK + NOP
-        "LDI r20, 4      	  \n\t"
-        "NOP  				  \n\t"		
-#else								  // 8CK delay (2 * 3CK) + LDI 1CK + NOP
-        "LDI r20, 2      	  \n\t"
-        "NOP  				  \n\t"		
-#endif	
-#elif (F_CPU == 8000000UL)			  // 5CK delay (1 * 3CK) + LDI 1CK + NOP
+#if (TLED_CHIP == 2)                  // 14CK delay (4 * 3CK) + LDI 1CK + NOP
+        "LDI r20, 4            \n\t"
+        "NOP                    \n\t"        
+#else                                  // 8CK delay (2 * 3CK) + LDI 1CK + NOP
+        "LDI r20, 2            \n\t"
+        "NOP                    \n\t"        
+#endif    
+#elif (F_CPU == 8000000UL)              // 5CK delay (1 * 3CK) + LDI 1CK + NOP
         "LDI r20, 1           \n\t"
-        "NOP  				  \n\t"	
+        "NOP                    \n\t"    
 #elif (F_CPU == 9600000UL)
-#if (TLED_CHIP == 0)				  // 4CK delay (1 * 3CK) + LDI 1CK
-        "LDI r20, 1      	  \n\t"
-#elif (TLED_CHIP == 1)				  // 5CK delay (1 * 3CK) + LDI 1CK + NOP
-        "LDI r20, 1      	  \n\t"
-        "NOP  				  \n\t"	
-#elif (TLED_CHIP == 2)				  // 8CK delay (2 * 3CK) + LDI 1CK + NOP
-        "LDI r20, 2     	  \n\t"
-        "NOP  				  \n\t"	
+#if (TLED_CHIP == 0)                  // 4CK delay (1 * 3CK) + LDI 1CK
+        "LDI r20, 1            \n\t"
+#elif (TLED_CHIP == 1)                  // 5CK delay (1 * 3CK) + LDI 1CK + NOP
+        "LDI r20, 1            \n\t"
+        "NOP                    \n\t"    
+#elif (TLED_CHIP == 2)                  // 8CK delay (2 * 3CK) + LDI 1CK + NOP
+        "LDI r20, 2           \n\t"
+        "NOP                    \n\t"    
 #endif  
 #endif
         "_DELAY_LOOP_%=:    \n\t"     // Цикл задержки
-        "DEC r20       		\n\t"     // 1CK декремент
+        "DEC r20               \n\t"     // 1CK декремент
         "BRNE _DELAY_LOOP_%=\n\t"     // 2CK переход
 #endif
         //-----------------------------------------------------------------------------------------
         "CBI %[PORT], %[PIN]    \n\t"   // LOW на выход
         "LSL %[DATA]            \n\t"   // Сдвигаем данные влево
-        "DEC r19             	\n\t"   // Декремент счетчика циклов
+        "DEC r19                 \n\t"   // Декремент счетчика циклов
         "BRNE _LOOP_START_%=    \n\t"   // Переход в начало цикла
         :
         :[DATA]"r"(data),
         [PORT]"I"(_SFR_IO_ADDR(TLED_PORT)),
         [PIN]"I"(pin)
-		:"r19","r20"
+        :"r19","r20"
         );
-#elif (TLED_CHIP < 20)	// 2 пин ленты
+#elif (TLED_CHIP < 20)    // 2 пин ленты
         asm volatile
         (
-        "LDI r20, 8          	\n\t"
+        "LDI r20, 8              \n\t"
         "LOOP_%=:               \n\t"
         "CBI %[CLK_PORT],%[CLK] \n\t"
         "CBI %[DAT_PORT],%[DAT] \n\t"
@@ -200,7 +200,7 @@ public:
         "SBI %[DAT_PORT],%[DAT] \n\t"
         "SBI %[CLK_PORT],%[CLK] \n\t"
         "LSL %[DATA]            \n\t"
-        "DEC r20             	\n\t"
+        "DEC r20                 \n\t"
         "BRNE LOOP_%=           \n\t"
         :
         :[CLK_PORT]"I"(_SFR_IO_ADDR(TLED_CLK_PORT)),
@@ -208,9 +208,9 @@ public:
         [CLK]"I"(pinC),
         [DAT]"I"(pinD),
         [DATA]"r"(data)
-		:"r20"
+        :"r20"
         );
-#else 						// SPI ленты
+#else                         // SPI ленты
         SPI.transfer(data);
 #endif
         // ====================================================================
@@ -225,7 +225,7 @@ public:
         cli();
 #endif
 #if (TLED_CHIP >= 10)
-        write(255);	// старт байт для spi лент
+        write(255);    // старт байт для spi лент
 #endif
 #if (TLED_ORDER == ORDER_RGB)
         write(r); write(g); write(b);
