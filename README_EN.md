@@ -1,381 +1,410 @@
 This is an automatic translation, may be incorrect in some places. See sources and examples!
 
-#microLED
-microLED - ultra-lightweight address strip/matrix library
-- The main feature: color compression, the code takes up much less space in SRAM compared to analogues (FastLED, NeoPixel, etc.)
-- Color compression support: 8, 16 and 24 bits
-- Ability to work without a buffer at all (with some restrictions)
-- Working with color:
+# Microled
+Microled - Ultra -Luga Library for working with targeted tape/matrix
+- The main feature: compression of the color, the code takes many times less space in SRAM compared to analogues (Fastled, Neopixel, etc.)
+- Support for color compression: 8, 16 and 24 bits
+- the ability to work at all without a buffer (with some restrictions)
+- Work with color:
 - RGB
 - HSV
-- HEX (WEB colors)
-- "Color wheel" (1500 or 255 brightest shades)
-- 16 built-in colors
-- Color by warmth
-- Gradients
-- Ability to read compressed color in mHEX 0xRRGGBB and RGB array
-- Optimized asm output
-- Built-in support for working with address matrices
-- Chip support: 2811/2812/2813/2815/2818/WS6812/APA102
-- Built-in tinyLED to work on ATtiny
-- Compatibility of data types and tools from FastLED
-- Advanced interrupt settings
-- Native matrix support
-- Saving millis() (AVR only)
-- Support for SPI tapes (software and hardware)
+- Hex (Web color)
+- "Color wheel" (1500 or 255 of the brightest shades)
+- 16 built -in colors
+- Color according to warmth
+- gradients
+- the ability to read compressed color in MHEX 0XRRGGBB and RGB array
+- optimized ASM conclusion
+- Built -in support for working with targeted matrices
+- Support of chips: 2811/2812/2813/2815/2818/WS6812/APA102
+- Built -in Tinyled to work on Attiny
+- compatibility of data and tools from Fastled
+- Expanded interruption setting
+- Native support for matrices
+- Preservation of the work Millis () (only for AVR)
+- Support for SPI ribbons (software and hardware)
 
-### Compatibility
-Only AVR, ATmega and ATtiny
+## compatibility
+Only AVR, Atmega and Attiny
 
 ### Documentation
-The library has [extended documentation] (https://alexgyver.ru/microLED/)
+There is [expanded documentation] to the library (https://alexgyver.ru/microled/)
 
 ## Content
-- [Install](#install)
-- [Initialization](#init)
-- [Usage](#usage)
-- [Example](#example)
-- [Versions](#versions)
-- [Bugs and feedback](#feedback)
+- [installation] (# Install)
+- [initialization] (#init)
+- [use] (#usage)
+- [Example] (# Example)
+- [versions] (#varsions)
+- [bugs and feedback] (#fedback)
 
-<a id="install"></a>
+<a id="install"> </a>
 ## Installation
-- The library can be found by the name **microLED** and installed through the library manager in:
-    - Arduino IDE
-    - Arduino IDE v2- PlatformIO
-- [Download Library](https://github.com/GyverLibs/microLED/archive/refs/heads/main.zip) .zip archive for manual installation:
-    - Unzip and put in *C:\Program Files (x86)\Arduino\libraries* (Windows x64)
-    - Unzip and put in *C:\Program Files\Arduino\libraries* (Windows x32)
-    - Unpack and put in *Documents/Arduino/libraries/*
-    - (Arduino IDE) automatic installation from .zip: *Sketch/Include library/Add .ZIP library…* and specify the downloaded archive
-- Read more detailed instructions for installing libraries [here] (https://alexgyver.ru/arduino-first/#%D0%A3%D1%81%D1%82%D0%B0%D0%BD%D0%BE% D0%B2%D0%BA%D0%B0_%D0%B1%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D0%BA)
+- The library can be found by the name ** Microled ** and installed through the library manager in:
+    - Arduino ide
+    - Arduino ide v2
+    - Platformio
+- [download the library] (https://github.com/gyverlibs/microled/archive/refs/heads/main.zip) .Zip archive for manual installation:
+    - unpack and put in * C: \ Program Files (X86) \ Arduino \ Libraries * (Windows X64)
+    - unpack and put in * C: \ Program Files \ Arduino \ Libraries * (Windows X32)
+    - unpack and put in *documents/arduino/libraries/ *
+    - (Arduino id) Automatic installation from. Zip: * sketch/connect the library/add .Zip library ... * and specify downloaded archive
+- Read more detailed instructions for installing libraries [here] (https://alexgyver.ru/arduino-first/#%D0%A3%D1%81%D1%82%D0%B0%BD%D0%BE%BE%BE%BED0%B2%D0%BA%D0%B0_%D0%B1%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D0%BA)
+### Update
+- I recommend always updating the library: errors and bugs are corrected in the new versions, as well as optimization and new features are added
+- through the IDE library manager: find the library how to install and click "update"
+- Manually: ** remove the folder with the old version **, and then put a new one in its place.“Replacement” cannot be done: sometimes in new versions, files that remain when replacing are deleted and can lead to errors!
 
-<a id="init"></a>
-## Initialization
-```cpp
-microLED< amount, pin, clock, chip, order, cli, millis>
-- amount – number of LEDs in the strip. You can specify 0 for streaming mode, as there is virtually no limit to the length of the tape.
-- pin – pin to which the data input of the tape is connected (D, Din, DI).
-- clock - pin to which the clock-input of the tape is connected (C, CLK). This pin is connected only for SPI tapes, for example APA102.
-    - To work with tapes of the WSxxxx series, you need to specify the parameter MLED_NO_CLOCK or minus 1 instead of this pin, i.e. -one
-- chip – strip model (LEDs), LED_WS2811, LED_WS2812, LED_WS2813, LED_WS2815, LED_WS2818, LED_WS6812, APA102, APA102_SPI are supported in the library. Selecting a tape model sets the protocol speed (they have different ones) and current consumption settings for limiting modes (read about them later).
-- order - the order of the colors in the ribbon. In an ideal world, the color order should depend on the chip model and this setting should be built into the chip selection, but the Chinese sell ribbons that are protocol-matched to one chip, but have a different color order. Thus, the library supports more types of ribbons than written above, but you need to guess with the choice of “clone” and the order of colors.
-    - Order: ORDER_RGB, ORDER_RBG, ORDER_BRG, ORDER_BGR, ORDER_GRB, ORDER_GBR.
 
-microLED< NUMLEDS, STRIP_PIN, -1, LED_WS2811, ORDER_GBR> strip;
-microLED< NUMLEDS, STRIP_PIN, -1, LED_WS2812, ORDER_GRB> strip;
-microLED< NUMLEDS, STRIP_PIN, -1, LED_WS2813, ORDER_GRB> strip;
-microLED< NUMLEDS, STRIP_PIN, -1, LED_WS2815, ORDER_GRB> strip;
-microLED< NUMLEDS, STRIP_PIN, -1, LED_WS2818, ORDER_RGB> strip;
-microLED< NUMLEDS, STRIP_PIN, -1, LED_WS6812, ORDER_RGB> strip;
-microLED< NUMLEDS, STRIP_PIN, CLOCK_PIN, LED_APA102, ORDER_BGR> strip;
-microLED< NUMLEDS, MLED_NO_CLOCK, MLED_NO_CLOCK, LED_APA102_SPI, ORDER_BGR> strip;
-```
+<a id="init"> </a>
+## initialization
+`` `CPP
+Microled <Amount, Pin, Clock, Chip, Order, Cli, Millis>
+- Amount - the number of LEDs in the tape.To work in the flow mode, you can specify 0, since the length of the tape is actually unlimited.
+- PIN- PIN, to which the date-entry of the tape is connected (D, DIN, DI).
+- Clock- PIN, to which the clock-input of the tape (C, CLK) is connected.This pin is connected only for SPI ribbons, such as APA102.
+    - To work with the ribbons of the WSXXXX series, you need to specify instead of Pin the parameter MLED_NO_CLOCK or minus 1, i.e.-1
+- Chip - a model of tape (LEDs), in the library supportLED_WS2811, LED_WS2812, LED_WS2813, LED_WS2815, LED_WS2818, LED_WS6812, APA102, APA102_SPI.The choice of the tape model sets the speed of the protocol (they have different ones) and the consumption current settings for restriction modes (read more about them).
+- Order - the order of flowers in the tape.In the ideal world, the color order should depend on the chip model and this setting should be built into the choice of the chip, but the Chinese sell ribbons that coincide with one chip in the protocol, but have a different color order.Thus, the library supports more types of tapes than written above, but you need to guess with the choice of “clone” and the order of flowers.
+    - Order: Order_RGB, Order_RBG, Order_BRG, Order_BGR, Order_GRB, Order_GBR.
 
-<a id="usage"></a>
+Microleds <numleds, strip_pin, -1, led_ws2811, order_gbr> strip;
+Microleds <numleds, strip_pin, -1, led_ws2812, oorder_grb> strip;
+Microleds <numleds, strip_pin, -1, led_ws2813, oorder_grb> strip;
+Microleds <numleds, strip_pin, -1, led_ws2815, oorder_grb> strip;
+Microleds <numleds, strip_pin, -1, led_ws2818, oorder_rgb> strip;
+Microleds <numleds, strip_pin, -1, led_ws6812, oorder_rgb> strip;
+Microleds <numleds, strip_pin, claock_pin, led_apa102, order_bgr> strip;
+Microleds <numleds, -1, -1, led_apa102_spi, order_bgr> strip;
+`` `
+
+<a id="usage"> </a>
 ## Usage
-See [documentation](https://alexgyver.ru/microLED/)
-```cpp
-// pattern: <number, pin, chip, order, interrupts, millis>
-// initialization TAPE: no arguments
-microLED;
-// initialization MATRIX: matrix width, matrix height, matrix type, connection angle, direction (see CONNECTING THE MATRIX)
-microLED(uint8_t width, uint8_t height, M_type type, M_connection conn, M_dir dir);
-// tape and matrix
-void set(int n, mData color); // set the color of the mData LED (equivalent to leds[n] = color)
-mData get(int num);// get the color of the diode in mData (equivalent to leds[n])
-void fill(mData color); // fill color mData
-void fill(int from, int to, mData color);// fill mData with color
-void fillGradient(int from, int to, mData color1, mData color2); // fill with a gradient of two colors
-void fade(int num, byte val); // decrease brightness
+See [documentation] (https://alexgyver.ru/microled/)
+`` `CPP
+// template: <quantity, pin, chip, order, interruption, millis>
+// initialization of the tape: no arguments
+Microled;
+
+// Initialization Matrix: matrix width, matrix height, matrix type, connection angle, direction (see the connection of the matrix)
+Microled (Uint8_t Width, Uint8_t Height, M_type Type, M_connection Conn, M_dir Dir);
+
+// Tape and Matrix
+VOID set (int n, mdata color);// put the color of the LED MDATA (equivalent to leds [n] = color)
+Mdata Get (int num);// Get the color of the diode in mdata (equivalent to leds [n])
+Void Fill (Mdata Color);// pouring with color mdata
+VOID Fill (Int FROM, Int to, MDATA Color); // Pouring MDATA color
+VOID Fillgradient (Int frim, int to, mdata color1, mdata color2);// Pour a gradient of two colors
+VOID FADE (int num, byte val);// Reduce brightness
+
 // matrix
-uint16_t getPixNumber(int x, int y); // get the pixel number in the feed by coordinates
-void set(int x, int y, mData color); // set the color of pixel x y to mData
-mData get(int x, int y);// get pixel color in mData
-void fade(int x, int y, byte val);// decrease brightness
-void drawBitmap8(int X, int Y, const uint8_t *frame, int width, int height); // bitmap output (bitmap 1 dimensional PROGMEM)
-void drawBitmap16(int X, int Y, const uint16_t *frame, int width, int height); // bitmap output (bitmap 1 dimensional PROGMEM)
-void drawBitmap32(int X, int Y,cranberry const uint32_t *frame, int width, int height); // bitmap output (bitmap 1 dimensional PROGMEM)
-// general
-void setMaxCurrent(int ma);// set the maximum current (brightness auto-correction). 0 - disabled
-void setBrightness(uint8_t newBright); // brightness 0-255
-void clear(); // cleanup
-// buffer output
-void show(); // output the entire buffer
-// stream output
-voidbegin(); // start stream output
-void send(mData data); // send one LED
-void end();// end the output with a stream
-// Colour
-uint32_t getHEX(mData data); // repack to 24 bit HEX
-mData getFade(mData data, uint8_t val); // decrease brightness by val
-mData getBlend(int x, int amount, mData c0, mData c1); // get intermediate color
-mData mRGB(uint8_t r, uint8_t g, uint8_t b); // RGB 255, 255, 255
-mData mWheel(int color, uint8_t bright=255); // colors 0-1530 + brightness
-mData mWheel8(uint8_t color, uint8_t bright=255); // colors 0-255 + brightness
-mData mHEX(uint32_t color); // mHEX color
-mData mHSV(uint8_t h, uint8_t s, uint8_t v); // HSV 255, 255, 255
-mData mHSVfast(uint8_t h, uint8_t s, uint8_t v); // HSV 255, 255, 255
-mData mKelvin(int kelvin); // temperature
-// macros for dimming
-fade8(x, b)
-fade8R(x, b)
-fade8G(x, b)
-fade8B(x, b)
-// packing-unpacking
-getR(x)
-getG(x)
-getB(x)
-mergeRGB(r,g,b)
-mergeRGBraw(r,g,b)
-getCRT(byte x) - get the corrected brightness value x, taking into account the selected CRT model of gamma correction
-getCRT_PGM(byte x) - get CRT from programs (works only if PGM model is selected)
-getCRT_SQUARE(byte x) - get CRT by square model
-getCRT_QUBIC(byte x) - get CRT by cubic model
-RGB24to16(x) - convert 24-bit color to 16-bit
-RGB24to8(x) - convert 24-bit color to 8-bit
-RGB16to24(x) - convert 16-bit color to 24-bit
-RGB8to24(x) - convert 8-bit color to 24-bit
-RGB24toR(x) - pull byte R from 24-bit color
-RGB24toG(x) - pull byte G from 24-bit color
-RGB24toB(x) - pull byte B from 24-bit color
-RGBto24(r,g,b) - glue 24-bit color
-RGBto16(r,g,b) - merge 16-bit color
-RGBto8(r,g,b) - merge 8-bit color
-```
+uint16_t getpixnumber (int x, int y);// Get a pixel number in the tape according to the coordinates
+VOID SET (int X, int y, mdata color);// put the color of the pixel x y in mdata
+mdata get (int x, int y);// get the color of the pixel in mdata
+VOID FADE (Int X, Int Y, Byte Val);// Reduce brightness
+VOID DRAWBITMAP8 (Int X, Int Y, COST UINT8_T *FRAME, Int Width, Intt Height);// Bitmap output (Bitmap 1mater Progmem)
+VOID DRAWBITMAP16 (Int X, Int Y, COST UINT16_T *FRAME, IntHIDTH, IntHTHT);// Bitmap output (Bitmap 1mater Progmem)
+VOID DRAWBITMAP32 (Int X, Int Y, COST UINT32_T *FRAME, IntHIDTH, IntHTHT);// Bitmap output (Bitmap 1mater Progmem)
 
-<a id="example"></a>
+// General
+VOID setmaxcurrent (int ma);// Set the maximum current (auto -correction of brightness).0 - off
+VOID Setbrightness (Uint8_T Newbright);// brightness 0-255
+Void Clear ();// Cleaning
+VOID setcli (Type);// Prohibition of interruptions of pli_off, cli_low, cli_aver, cli_high
+
+// Boofer conclusion
+VOID show ();// Determine the entire buffer
+
+// Stream output
+VOID Begin ();// Start the conclusion with a stream
+VOID SEND (MDATA DATA);// Send one LED
+VOID end ();// End the output with a stream
+
+// color
+uint32_t gethex (mdata data);// reproduce in 24 bits hex
+Mdata Getfade (Mdata Data, Uint8_t Val);// Reduce brightness by val
+MDATA Getblend (Int X, Intsount, MDATA C0, MDATA C1);// get an interim color
+mdata mrgb (uint8_t r, uint8_t g, uint8_t b);// RGB 255, 255, 255
+Mdata mwheel (int color, uint8_t bright = 255);// Colors 0-1530 + brightness
+mdata mwheel8 (Uint8_t Color, Uint8_t Bright = 255);// Colors 0-255 + brightness
+mdata mhex (uint32_t color);// mhex color
+mdata mhsv (uint8_t h, uint8_t s, uint8_t v);// hsv 255, 255, 255
+Mdata mhsvfast (uint8_th, uint8_t s, uint8_t v);// hsv 255, 255, 255
+Mdata Mkelvin (Int Kelvin);// temperature
+
+// Macros of brightness reduction
+fade8 (x, b)
+Fade8r (x, b)
+Fade8g (x, b)
+Fade8b (x, b)
+
+// packaging-packing
+Getr (x)
+Getg (x)
+Getb (x)
+Mergergb (r, g, b)
+Mergergbraw (r, g, b)
+Getcrt (byte X) - get the adjusted value of brightness X taking into account the selected CRT model of gamma correction
+Getcrt_pgm (Byte X) - get CRT from the progress (it only works if the PGM model is selected)
+Getcrt_SQUARE (Byte X) - Get CRT by square model
+Getcrt_Qubic (Byte X) - Get CRT by cubic model
+RGB24TO16 (X)-Convertation 24-bit color in 16-bit
+RGB24TO8 (x)-Convertation 24-bit colors in 8-bit
+RGB16TO24 (X)-Convertation 16-bit color in 24-bit
+RGB8TO24 (x)-8-bit color conversion in 24-bit
+RGB24TOR (x) - pull out byt R of 24 -bit color
+RGB24TOG (x) - pull out byt G of 24 -bit color
+RGB24TOB (x) - pull out byte B of 24 -bit color
+Rgbto24 (r, g, b) - glue 24 -bit color
+Rgbto16 (r, g, b) - glue 16 -bit color
+Rgbto8 (r, g, b) - glue 8 -bit color
+`` `
+
+<a id="EXAMPLE"> </a>
 ## Example
-See **examples** for other examples!
-```cpp
-// basic example of working with the ribbon, main features
-// microLED library version 3.0+
-// read the documentation for more details
+The rest of the examples look at ** Examples **!
+`` `CPP
+// Basic example of working with the tape, basic possibilities
+// Library Microled version 3.0+
+// For more information, read the documentation
 
-// constants for convenience
-#define STRIP_PIN 2 // strip pin
-#define NUMLEDS 20 // number of LEDs
+// Constants for convenience
+#define strip_pin 2 // Pin tape
+#define numleds 20 // Sum of LEDs
 
-// ===== COLOR DEPTH =====
-// 1, 2, 3 (byte per color)
-// at a lower color resolution, the sketch will take up much less space,
-// but the number of shades and brightness levels will also decrease!
-// define is done BEFORE INCLUDING THE LIBRARY
-// without it will be 3 bytes by default
-#define COLOR_DEBTH 3
+// ===== Color depth ========
+// 1, 2, 3 (byte for color)
+// on a smaller color resolution, the sketch will occupy many times less space,
+// But the number of shades and brightness levels will decrease!
+// Define is made before connecting the library
+// Without it there will be 3 bytes by default
+#define color_debth 3
 
-#include <microLED.h> // include the bible
+#include <microled.h> // Connect the bibla
 
-// ======= INITIALIZATION =======
-// <number of ices, pin, clock pin, chip, order>
-// microLED<NUMLEDS, DATA_PIN, CLOCK_PIN, LED_WS2818, ORDER_GRB> strip;
-// CLOCK pin is only needed for SPI tapes (for example APA102)
-// for regular WS tapes, specify MLED_NO_CLOCK
-// for APA102, see separate guide in examples
+// ====== Entialization ============
+// <Kolvo-training, pin, Klok Pin, chip, order>
+// microleds <numleds, data_pin, claock_pin, led_ws2818, oner_grb> strip;
+// Clock Pin is needed only for SPI tapes (for example, APA102)
+// For ordinary WS tapes, indicate mled_no_clock
+// by APA102 see a separate guide in the examples
 
-// various Chinese knockoffs may have compatibility
-// with same chip but different color order!
-// supported ribbon chips and their official color order:
-// microLED<NUMLEDS, STRIP_PIN, MLED_NO_CLOCK, LED_WS2811, ORDER_GBR> strip;
-// microLED<NUMLEDS, STRIP_PIN, MLED_NO_CLOCK, LED_WS2812, ORDER_GRB> strip;
-// microLED<NUMLEDS, STRIP_PIN, MLED_NO_CLOCK, LED_WS2813, ORDER_GRB> strip;
-// microLED<NUMLEDS, STRIP_PIN, MLED_NO_CLOCK, LED_WS2815, ORDER_GRB> strip;
-// microLED<NUMLEDS, STRIP_PIN, MLED_NO_CLOCK, LED_WS2818, ORDER_RGB> strip;
-// microLED<NUMLEDS, STRIP_PIN, MLED_NO_CLOCK, LED_WS6812, ORDER_RGB> strip;
-// microLED<NUMLEDS, STRIP_PIN, CLOCK_PIN, LED_APA102, ORDER_BGR> strip;
-// microLED<NUMLEDS, MLED_NO_CLOCK, MLED_NO_CLOCK, LED_APA102_SPI, ORDER_BGR> strip; // for hardware SPI
+// Various Chinese fakes can have compatibility
+// with one chip, but another order of flowers!
+// Supported tapes and their official color order:
+// Microleds <numleds, strip_pin, mled_no_clock, led_ws2811, order_gbr> strip;
+// Microleds <numleds, strip_pin, mled_no_clock, led_ws2812, order_grb> strip;
+// microleds <numleds, strip_pin, mled_no_clock, LED_WS2813, Order_GRB> Strip;
+// Microleds <numleds, strip_pin, mled_no_clock, led_ws2815, order_grb> strip;
+// Microleds <numleds, strip_pin, mled_no_clock, led_ws2818, order_rgb> strip;
+// Microleds <numleds, strip_pin, mled_no_clock, led_ws6812, order_rgb> strip;
+// microleds <numleds, strip_pin, claock_pin, led_apa102, oorder_bgr> strip;
+// Microleds <numleds, mled_no_clock, mled_no_clock, led_apa102_spi, order_bgr> strip;// for hardware SPI
 
 
-// ======= INTERRUPTS =======
-// to increase the reliability of data transfer to the tape, interrupts can be disabled.
+// ======= Interruption ============
+// To increase the reliability of data transfer to the tape, you can turn off the interruption.
 // The library has 4 modes:
-// CLI_OFF - interrupts are not disabled (tape crashes are possible)
-// CLI_LOW - interrupts are disabled for the duration of the transfer of one color
-// CLI_AVER - interrupts are disabled for the duration of the transmission of one LED (3 colors)
-// CLI_HIGH - interrupts are disabled while transferring data to the entire tape
+// cli_Off - interruptions are not disconnected (tape failures are possible)
+// cli_low - interruptions are disconnected during the transmission of one color
+// cli_aver - interruptions are disconnected during the transfer of one LED (3 colors)
+// cli_high - interruptions are disconnected during the transfer of the given to the entire tape
 
-// Disable interrupts by default set to CLI_OFF (not disabled)
-// Parameter is passed 5th during initialization:
-// microLED<NUMLEDS, STRIP_PIN, LED_WS2818, ORDER_GRB, CLI_AVER> strip;
+// by default, the disabling of interruptions stands on Cli_off (do not turn off)
+// The parameter is transmitted to the 5th during initialization:
+// Microleds <numleds, strip_pin, led_ws2818, iter_grb, cli_aver> strip;
 
-// ======= SAVE MILLIS =======
-// When interrupts are disabled in medium and high priority mode (CLI_AVER and CLI_HIGH)
-// the time functions millis() and micros() will inevitably lag behind a bit
-// The library has a built-in service of time functions, for activation we pass SAVE_MILLIS
-// 6th argument during initialization:
-// microLED<NUMLEDS, STRIP_PIN, MLED_NO_CLOCK, LED_WS2818, ORDER_GRB, CLI_AVER, SAVE_MILLIS> strip;
-// this will SLIGHTLY slow down the output to the tape, but will allow the millis to keep up!
+// ======= Save millis =============
+// when disconnecting interruptions in medium and high proportion mode (Cli_aver and Cli_high)
+// Inevitably, the functions of the time millis () and micros () will be slightly lagging behind
+// The library is built into the maintenance of the functions of the time, for activation, we transfer Save_Millis
+// 6th argument in initialization:
+// Microleds <numleds, strip_pin, mled_no_clock, led_ws2818, order_grb, clai_aver, save_millis> strip;
+// This will slowly slow down on the tape, but will allow Millis to count without a lag!
 
-// initialize the feed (there was a guide above!)
-microLED<NUMLEDS, STRIP_PIN, MLED_NO_CLOCK, LED_WS2818, ORDER_GRB, CLI_AVER> strip;
+// I initialize the tape (it was aboveHyde!)
+Microleds <numleds, strip_pin, mled_no_clock, led_ws2818, oorder_grb, cli_aver> strip;
 
-void setup() {
-  // ===================== BASIC ITEMS ======================
+VOID setup () {
+  // ===================== Basic things ============================================
   // brightness (0-255)
-  strip.setBrightness(60);
-  // brightness applied by CRT gamma
-  // applied when outputting .show() !
+  strip.setbrightness (60);
+  // brightness is used in CRT gamut
+  // applies in the withdrawal of .show ()!
 
-  // clear buffer (turn off diodes, black color)
-  strip.clear();
-  // applied when outputting .show() !
+  // Cleaning the buffer (turn off the diodes, black)
+  strip.clear ();
+  // applies in the withdrawal of .show ()!
 
-  strip.show(); // output changes to the tape
-  delay(1); // there must be a pause of at least 40 µs between show calls !!!!
+  strip.show ();// Conclusion of changes to the tape
+  DELAY (1);// Between the show challenges there should be a pause of at least 40 μs !!!!
 
-  // ===================== SET COLOR ======================
-  // The library supports two options for working with the ribbon:
-  // change the color of a specific diode using the set(diode, color) function
-  // or work with the .leds[] array "manually"
+  // ====ward
+  // The library supports two options for working with the tape:
+  // Changing the color of a particular diode using the SET function (diode, color)
+  // or work with the .LEDS [] "Manual" array
 
-  // record strip.set(diode, color); is equivalent to strip.leds[diode] = color;
+  // recording Strip.set (diode, color);equivalent to strip.leds [diode] = color;
 
-  // ------------- BASIC COLOR FUNCTIONS ------------
-  // the following functions inCranberries corrupt the mData data type - a compressed color representation
+  // ------------ The main functions of working with color -----------
+  // The following functions of the BRZENT are the type of data MDATA - compressed color view
 
-  // mRGB(uint8_t r, uint8_t g, uint8_t b); // RGB color, 0-255 each channel
-  strip.set(0, mRGB(255, 0, 0)); // diode 0, RGB color (255 0 0) (red)
+  // mrgb (uint8_t r, uint8_t g, uint8_t b);// Color RGB, 0-255 Each channel
+  strip.set (0, mrgb (255, 0, 0));// diode 0, color RGB (255 0 0) (red)
 
-  // mHSV(uint8_t h, uint8_t s, uint8_t v); // HSV color, 0-255 each channel
-  strip.leds[1] = mHSV(30, 255, 255); // diode 1, (color 30, brightness and saturation maximum)
+  // mhsv (uint8_t h, uint8_t s, uint8_t v);// color hsv, 0-255 each channel
+  strip.leds [1] = mhsv (30, 255, 255);// diode 1, (color 30, brightness and saturation maximum)
 
-  // mHSVfast(uint8_t h, uint8_t s, uint8_t v); // HSV color, 0-255 each channel
-  // calculation is slightly faster, but the colors are not as smooth
-  strip.set(2, mHSVfast(90, 255, 255)); // diode 2, color 90, brightness and saturation maximum
+  // mhsvfast (uint8_t h, uint8_t s, uint8_t v);// color hsv, 0-255 each channel
+  // The calculation is performed a little faster, but the colors are not so smooth
+  Strip.set (2, mhsvfast (90, 255, 255));// diode 2, color 90, brightness and saturation maximum
 
-  // mHEX(uint32_t color); // WEB colors (0xRRGGBB)
-  strip.set(3, mHEX(0x30B210)); // diode 3, color HEX 0x30B210
+  // mhex (uint32_t color);// Web Colors (0xrrggb)
+  strip.set (3, mhex (0x30b210));// diode 3, color hex 0x30b210
 
-  // there are 17 preset colors in the library (max brightness)
-  strip.leds[4] = mAqua; // diode 4, color aqua
+  // The library has 17 pre -installed colors (max. Brightness)
+  strip.leds [4] = maqua;// diode 4, color aqua
 
-  // mWheel(int color); // rainbow colors 0-1530
-  // mWheel(int color, uint8_t bright); // rainbow colors 0-1530 + brightness 0-255
-  strip set(5, mWheel(1200)); // diode 5, color 1200
+  // mwheel (int color);// Rainbow colors 0-1530
+  // mwheel (int color, uint8_t bright);// rainbow colors 0-1530 + brightness 0-255
+  strip.set (5, mwheel (1200));// diode 5, color 1200
 
-  // mWheel8(int color); // rainbow colors 0-255
-  // mWheel8(int color, uint8_t bright); // rainbow colors 0-255 + brightness 0-255
-  //strip.set(6, mWheel8(100)); // diode 6, color 100 (range 0-255 along the rainbow)
-  strip.set(6, mWheel8(100, 50)); // brightness can be passed as the second parameter
+  // mwheel8 (int color);// Rainbow colors 0-255
+  // mwheel8 (int color, uint8_t Bright);// rainbow colors 0-255 + brightness 0-255
+  //strip.set(6, mwheel8 (100));// diode 6, color 100 (range 0-255 along the rainbow)
+  strip.set (6, mwheel8 (100, 50));// The second parameter can be conveyed brightness
 
-  // mKelvin(int kelvin); // color temperature 1'000-40'000 Kelvin
-  strip.set(7, mKelvin(3500)); // diode 7, color temperature 3500K
+  // mkelvin (int Kelvin);// Color temperature 1'000-40'000 Kelvin
+  strip.set (7, mkelvin (3500));// diode 7, color temperature 3500k
 
-  strip.show(); // output all changes to the tape
-  delay(2000); // display delay
+  strip.show ();// We display all changes to the tape
+  DELAY (2000);// delay in the show
 
-  // ===================== FILL =====================
-  // There is a ready-made function for filling the entire ribbon with color - .fill()
-  // accepts a converted color, such as from the color functions or constants above
-  strip fill(mYellow); // fill with yellow
-  strip.show(); // output changes
-  delay(2000);
+  // =========================================ward
+  // there is a ready -made function for filling the entire tape with color - .Fill ()
+  // accepts the converted color, for example, from color functions or constants above
+  strip.fill (Myillow);// Pour yellow
+  strip.show ();// We display changes
+  DELAY (2000);
 
-  // you can also specify the start and end of the fill
-  strip.fill(3, 7, mWheel8(100)); // fill ~green from 3 to 6: count starts from 0, fills up to the specified -1
-  strip.show(); // output changes
-  delay(2000);
+  // You can also specify the beginning and end of the filling
+  strip.fill (3, 7, mwheel8 (100));// Pour ~ green from 3 to 6: the account goes from 0, poured to the specified -1
+  strip.show ();// We display changes
+  DELAY (2000);
 
-  // ------------- MANUAL FILL IN A LOOP ------------
-  // For example, paint half of the ribbon in one, half in the other
-  for (int i = 0; i < NUMLEDS / 2; i++) strip.leds[i] = mHSV(0, 255, 255); // red
-  for (int i = NUMLEDS / 2; i < NUMLEDS; i++) strip.leds[i] = mHSV(80, 255, 255); // roughly green
-  strip.show(); // output changes
-  delay(2000);
+  // ------------- Manual filling in the cycle -----------
+  // For example, paint half the tape into one, half in the other
+  for (int i = 0; i <numleds / 2; i ++) strip.Leds [i] = mhsv (0, 255, 255);// red
+  for (int i = numleds / 2; i <numleds; i ++) strip.leds [i] = mhsv (80, 255, 255);// approximately green
+  strip.show ();// We display changes
+  DELAY (2000);
 
-  // ------------------------------------------------
-  // To speed up manual fills (speed up color calculation), you can create a variable of type mData
-  mData value1, value2;
-  value1 = mHSV(60, 100, 255);
-  value2 = mHSV(190, 255, 190);
-  for (int i = 0; i < NUMLEDS; i++) {
-    if (i < NUMLEDS / 2) strip.leds[i] = value1; // first half of tape
-    else strip.leds[i] = value2; // second half of tape
+  // ------------------------------------
+  // To accelerate manual fills (acceleration of color calculation), you can create a variable type MDATA
+  Mdata Value1, Value2;
+  Value1 = mhsv (60, 100, 255);
+  Value2 = mhsv (190, 255, 190);
+  for (int i = 0; i <numleds; i ++) {
+    if (i <numleds / 2) strip.leds [i] = value1;// First half of the tape
+    else strip.leds [i] = value2;// second half of the tape
   }
-  strip.show(); // output changes
-  delay(2000);
+  strip.show ();// We display changes
+  DLAY (2000);
 
-  // ------------------------------------------------
-  // in the loop, you can change the color generation parameters. For example, let's make a rainbow
-  for (int i = 0; i < NUMLEDS; i++) strip.set(i, mWheel8(i * 255 / NUMLEDS)); // full circle from 0 to 255
-  strip.show(); // output changes
-  delay(2000);
+  // ------------------------------------
+  // In the cycle, you can change the color generation parameters.For example, make a rainbow
+  for (int i = 0; i <numleds; i ++) strip.set (i, mwheel8 (I * 255 / numleds));// Full circle from 0 to 255
+  strip.show ();// We display changes
+  DELAY (2000);
 
-  // or gradient from red to black (sequentially changing the brightness)
-  for (int i = 0; i < NUMLEDS; i++) strip.set(i, mWheel8(0, i * 255 / NUMLEDS)); // full circle from 0 to 255
-  strip.show(); // output changes
+  // or gradient from red to black (sequentially changing brightness)
+  for (int i = 0; i <numleds; i ++) strip.set (I, mwheel8 (0, I * 255 / numleds));// Full circle from 0 to 255
+  strip.show ();// We display changes
 }
 
-void loop() {
+VOID loop () {
 }
-```
+`` `
 
-<a id="versions"></a>
-## Versions
-- v1.1
-    - Fixed initialization
-    - Added orange color
+<a id="versions"> </a>
+## versions
+- V1.1
+    - The initialization is corrected
+    - added orange color
     
-- v2.0
-    - Rewritten and greatly accelerated output algorithm
-    - Added current limit
+- V2.0
+    - rewritten and greatly accelerated the output algorithm
+    - Added current restriction
     
-- v2.1
-    - Fixed a bug with the matrix
+- V2.1
+    - corrected error with the matrix
     
-- v2.2
-    - PINK color changed to MAGENTA
+- V2.2
+    - Pink color is replaced by Magenta
     
-- v2.3
-    - Added define setting MICROLED_ALLOW_INTERRUPTS
-    - Fixed minor bugs, improved withcranberry stability
+- V2.3
+    - Added define setting Microled_allow_interrupts
+    - Fixed small errors, improved stability
     
-- v2.4
-    - Added ORDER_BGR
+- V2.4
+    - Added Order_BGR
     
-- v2.5
-    - Brightness by CRT gamma
+- V2.5
+    - CRT Gamma brightness
     
-- v3.0
-    - Added features and colors:
-    - .setKelvin() color temperature and Kelvin date
-    - getBlend(position, total, color1, color2) and getBlend2(position, total, color1, color2)
-    - .fill(from, to)
-    - .fillGradient(from, to, color1, color2)
-    - Added Perlin noise (pulled from FastLED)
+- V3.0
+    - Added functions and colors:
+    - color temperature .Setkelvin () and Kelvin date
+    - Getblend (position, total color1, color2) and getblend2 (position, all, color1, color2)
+    - .Fill (from, to)
+    - .Fillgradient (from, to, color1, color2)
+    - added the noise of Perlin (pulled out of Fastled)
     - Added gradients
-    - Completely redesigned and optimized output
-    - Ability to work without a buffer at all
-    - Current limit setting for all types of tapes
-    - Configurable interrupt disable
-    - Saving the work of the millis for the time of sending
+    - the conclusion is completely redone and optimized
+    - the ability to work at all without a buffer
+    - Setting up current restrictions for all types of tapes
+    - Networking ban on interruptions
+    - Preservation of the work of Millis for the duration of sending
     - Support for tapes 2811, 2812, 2813, 2815, 2818
-    - Support for 4 color ribbons: WS6812
-    - Initialization redesigned for the template, see examples!
-    - A lot of changes in the names, everything is redone and simplified, read the documentation!
+    - Support for 4 color tapes: WS6812
+    - Initialization was converted to the template, see examples!
+    - Many changes in the names, everything is redone and simplified, read the documentation!
     
-- v3.1
-    - Fixed compilation errors for non-standard cores of Arduino and Attini
-    - Added class tinyLED.h for streaming with ATtiny and any AVR in general (see example)
-    - Cut out FastLED tools (random, noise), we will work directly with fastled
-    - Added support for working with the FastLED library and converting from its types!
-    - Added support for APA102 tape (as well as other SPI), software and hardware SPI
+- V3.1
+    - Correction errors for non -standard nuclei Arduino and Attini are adjusted
+    - added Tinyled.h class for output with a stream from Attiny and in general any avr (see example)
+    - Fastled tools are cut out (random, noise), we will work directly from the fastric
+    - Added support for joint work with the Fastled library and converting from its types!
+    - Added support for the APA102 tape (as well as other SPIs), software and hardware SPI
     
-- v3.2
-    - Some optimizations and fixes
+- V3.2
+    - slightly optimization and corrections
     
-- v3.3
+- V3.3
     - Fixed a critical bug with influence on other pins
     
-- v3.4
-    - Redesigned ASM output, weighs less, adapts more easily to other frequencies / timings
-    - Added support for LGT8F328P with a frequency of 32/16/8 MHz
-    - Redesigned millis()/micros() polling - direct TIMER0_OVF interrupt call, removed extra code
+- V3.4
+    - ASM recycled, less weighs, adapts easier to other frequencies / timings
+    - Added Support LGT8F328P with a frequency of 32/16/8 MHZ
+    - redesigned Polling Millis ()/Micros () - direct call call to interrupt Timer0_OVF, removed the extra code
     
-- v3.5
-    - Fixed compilation error in some cases pleasing to the compiler
+- V3.5
+    - Fixed compilation error in some cases
+    
+- V3.6
+    - Added adjustment of the interruption ban regime on the fly
 
-<a id="feedback"></a>
-## Bugs and feedback
-When you find bugs, create an **Issue**, or better, immediately write to the mail [alex@alexgyver.ru](mailto:alex@alexgyver.ru)
-The library is open for revision and your **Pull Request**'s!
+<a id="feedback"> </a>
+## bugs and feedback
+Create ** Issue ** when you find the bugs, and better immediately write to the mail [alex@alexgyver.ru] (mailto: alex@alexgyver.ru)
+The library is open for refinement and your ** pull Request ** 'ow!
+
+
+When reporting about bugs or incorrect work of the library, it is necessary to indicate:
+- The version of the library
+- What is MK used
+- SDK version (for ESP)
+- version of Arduino ide
+- whether the built -in examples work correctly, in which the functions and designs are used, leading to a bug in your code
+- what code has been loaded, what work was expected from it and how it works in reality
+- Ideally, attach the minimum code in which the bug is observed.Not a canvas of a thousand lines, but a minimum code
