@@ -1,9 +1,14 @@
-#ifndef _FastLEDsupport_h
-#define _FastLEDsupport_h
-// поддержка типа данных FastLED для microLED
+#ifdef FASTLED_SUPPORT
 
-#include <FastLED.h>
-#include "microLED.h"
+    #ifndef _FastLEDsupport_h
+    #define _FastLEDsupport_h
 
-mData CRGBtoData(CRGB col);
-#endif
+    // поддержка типа данных FastLED для microLED
+    #include <FastLED.h>
+    #include "microLED.h"
+
+    mData CRGBtoData(CRGB col);
+
+    #endif // _FastLEDsupport_h
+
+#endif // FASTLED_SUPPORT
